@@ -1,0 +1,14 @@
+{
+  "name": "mmx-dashboard",
+  "version": "0.1.0",
+  "description": "MagicMirror X Monitor dashboard module and sample configuration.",
+  "private": false,
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "scripts": {
+    "check": "node --check modules/MMM-XMonitor/MMM-XMonitor.js && node --check modules/MMM-XMonitor/node_helper.js && node --check scripts/electron-display-info.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

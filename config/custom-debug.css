@@ -1,0 +1,8 @@
+/* Temporary layout outlines for MMX display troubleshooting. */
+
+.region,
+.module,
+.mmx-dashboard,
+.xmonitor-panel {
+  outline: 1px dashed rgb(127 208 255 / 60%);
+}

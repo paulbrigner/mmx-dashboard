@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+*.log
+
+# Local MagicMirror/X Monitor settings.
+config/config.xmonitor.env
+config/config.env
+
+# Local editor state.
+.idea/
+.vscode/
