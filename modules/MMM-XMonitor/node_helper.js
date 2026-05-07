@@ -51,11 +51,12 @@ module.exports = NodeHelper.create({
 	async fetchXMonitor(identifier, config) {
 		this.lastConfig = config || {};
 		const apiBaseUrl = this.resolveApiBaseUrl(config);
-		if (!apiBaseUrl) {
+		const apiPaths = this.resolveApiPaths(config);
+		if (!apiBaseUrl || !apiPaths.feed || !apiPaths.trends || !apiPaths.summaries) {
 			this.sendSocketNotification("XMONITOR_DASHBOARD_RESULT", {
 				identifier,
 				status: "setup",
-				error: "Set XMONITOR_MM_API_BASE_URL"
+				error: "Set the private X Monitor API settings"
 			});
 			return;
 		}
@@ -67,9 +68,9 @@ module.exports = NodeHelper.create({
 		trendParams.set("trend_range", filters.trendRange || config.trendRange || "24h");
 
 		const requests = {
-			feed: this.fetchJson(`${apiBaseUrl}/feed?${queryParams.toString()}`, config),
-			trends: this.fetchJson(`${apiBaseUrl}/trends?${trendParams.toString()}`, config),
-			summaries: this.fetchJson(`${apiBaseUrl}/window-summaries/latest`, config)
+			feed: this.fetchJson(this.buildApiUrl(apiBaseUrl, apiPaths.feed, queryParams), config),
+			trends: this.fetchJson(this.buildApiUrl(apiBaseUrl, apiPaths.trends, trendParams), config),
+			summaries: this.fetchJson(this.buildApiUrl(apiBaseUrl, apiPaths.summaries), config)
 		};
 
 		const [feed, trends, summaries] = await Promise.allSettled([
@@ -120,6 +121,24 @@ module.exports = NodeHelper.create({
 		const configured = String(config?.apiBaseUrl || "").trim();
 		const base = configured || DEFAULT_API_BASE_URL;
 		return base.replace(/\/+$/, "");
+	},
+
+	resolveApiPaths(config) {
+		return {
+			feed: this.cleanApiPath(config?.feedPath),
+			trends: this.cleanApiPath(config?.trendsPath),
+			summaries: this.cleanApiPath(config?.summariesPath)
+		};
+	},
+
+	cleanApiPath(value) {
+		return String(value || "").trim();
+	},
+
+	buildApiUrl(apiBaseUrl, apiPath, params) {
+		const normalizedPath = apiPath.startsWith("/") ? apiPath : `/${apiPath}`;
+		const query = params ? params.toString() : "";
+		return query ? `${apiBaseUrl}${normalizedPath}?${query}` : `${apiBaseUrl}${normalizedPath}`;
 	},
 
 	buildQueryParams(filters, config) {

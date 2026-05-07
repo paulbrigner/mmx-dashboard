@@ -2,13 +2,18 @@
 
 Persistent local settings live in `config/config.xmonitor.env` inside the
 MagicMirror checkout. The committed `config/config.xmonitor.env.example` is a
-safe template and intentionally contains no real endpoint.
+safe template and intentionally contains no private API values.
 
 ## Required
 
 ```sh
-XMONITOR_MM_API_BASE_URL=https://your-api.example.com/v1
+XMONITOR_MM_API_BASE_URL=
+XMONITOR_MM_FEED_PATH=
+XMONITOR_MM_TRENDS_PATH=
+XMONITOR_MM_SUMMARIES_PATH=
 ```
+
+Use the values supplied to you privately.
 
 ## Server
 
@@ -64,6 +69,6 @@ handles.
 SECRET_XMONITOR_MM_API_KEY=
 ```
 
-If set, the node helper sends the value as `x-api-key` when calling the read
+If set, the node helper sends the value as `x-api-key` when calling the private
 API. Because this is server-side, the key is not included in browser module
 configuration.

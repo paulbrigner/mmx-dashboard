@@ -15,7 +15,7 @@ dashboard and controls page.
 
 ## API Keys
 
-If your X Monitor read API requires a key, put it in:
+If your private X Monitor API requires a key, put it in:
 
 ```sh
 SECRET_XMONITOR_MM_API_KEY=
@@ -29,12 +29,12 @@ put secrets in browser-visible module options.
 Do not commit:
 
 - `config/config.xmonitor.env`
-- real API endpoints if they are private
+- private API URLs or path settings
 - API keys or cookies
 - screenshots containing private posts or internal handles
 - AWS account IDs, ARNs, or operational details
 
 ## Cost Controls
 
-If you make the backing X Monitor API public, protect it with rate limits,
-logging, alarms, and budget alerts. CORS is not an abuse-control mechanism.
+If you make a backing API public, protect it with rate limits, logging, alarms,
+and budget alerts. CORS is not an abuse-control mechanism.

@@ -1,7 +1,7 @@
 # MMX Dashboard
 
-MMX is a MagicMirror dashboard module and sample configuration for an X Monitor
-read API. It renders a dedicated display with:
+MMX is a MagicMirror dashboard module and sample configuration for X Monitor.
+It renders a dedicated display with:
 
 - latest rolling 2-hour summary
 - recent signal feed
@@ -10,7 +10,7 @@ read API. It renders a dedicated display with:
 - a local controls page for filters and section toggles
 
 This repository is intentionally separate from any private personal MagicMirror
-setup. Bring your own X Monitor API endpoint.
+setup. Use the X Monitor API settings supplied to you privately.
 
 ## Quick Start
 
@@ -26,10 +26,14 @@ git clone https://github.com/paulbrigner/mmx-dashboard.git ../mmx-dashboard
 cp config/config.xmonitor.env.example config/config.xmonitor.env
 ```
 
-Edit `config/config.xmonitor.env` and set:
+Edit `config/config.xmonitor.env` and set the private API values supplied to
+you:
 
 ```sh
-XMONITOR_MM_API_BASE_URL=https://your-api.example.com/v1
+XMONITOR_MM_API_BASE_URL=
+XMONITOR_MM_FEED_PATH=
+XMONITOR_MM_TRENDS_PATH=
+XMONITOR_MM_SUMMARIES_PATH=
 ```
 
 Run the dashboard in browser/server mode:
@@ -52,23 +56,11 @@ scripts/start-xmonitor-dashboard.sh --list-displays
 scripts/start-xmonitor-dashboard.sh --display 1
 ```
 
-## API Contract
-
-`MMM-XMonitor` reads these endpoints under `XMONITOR_MM_API_BASE_URL`:
-
-- `GET /feed`
-- `GET /trends`
-- `GET /window-summaries/latest`
-
-The module expects JSON shaped like the current X Monitor read API. See
-[docs/api-contract.md](docs/api-contract.md) for the fields used by the UI.
-
 ## Docs
 
 - [Setup](docs/setup.md)
 - [Teammate setup](docs/teammate-setup.md)
 - [Configuration](docs/configuration.md)
-- [API contract](docs/api-contract.md)
 - [Security notes](docs/security.md)
 
 ## Local Controls
@@ -91,7 +83,7 @@ Runtime changes reset when MagicMirror restarts. Persistent defaults belong in
 ## Security
 
 Keep `XMONITOR_MM_ADDRESS=127.0.0.1` unless you intentionally want LAN access.
-If your read API requires a key, set `SECRET_XMONITOR_MM_API_KEY` in
+If your private API requires a key, set `SECRET_XMONITOR_MM_API_KEY` in
 `config/config.xmonitor.env`; the node helper sends it server-side.
 
 Do not commit `config/config.xmonitor.env`.

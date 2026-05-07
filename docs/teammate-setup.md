@@ -1,7 +1,7 @@
 # Teammate Setup
 
 This is the shortest path for someone who already has the MMX repository URL
-and a private X Monitor API base URL.
+and private X Monitor API settings.
 
 ## Commands
 
@@ -16,10 +16,13 @@ cd MagicMirror
 cp config/config.xmonitor.env.example config/config.xmonitor.env
 ```
 
-Edit `config/config.xmonitor.env`:
+Edit `config/config.xmonitor.env` with the private API values supplied to you:
 
 ```sh
-XMONITOR_MM_API_BASE_URL=https://your-api.example.com/v1
+XMONITOR_MM_API_BASE_URL=
+XMONITOR_MM_FEED_PATH=
+XMONITOR_MM_TRENDS_PATH=
+XMONITOR_MM_SUMMARIES_PATH=
 ```
 
 Run it:

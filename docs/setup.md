@@ -39,10 +39,13 @@ cd MagicMirror
 cp config/config.xmonitor.env.example config/config.xmonitor.env
 ```
 
-Edit `config/config.xmonitor.env`:
+Edit `config/config.xmonitor.env` with the private API values supplied to you:
 
 ```sh
-XMONITOR_MM_API_BASE_URL=https://your-api.example.com/v1
+XMONITOR_MM_API_BASE_URL=
+XMONITOR_MM_FEED_PATH=
+XMONITOR_MM_TRENDS_PATH=
+XMONITOR_MM_SUMMARIES_PATH=
 ```
 
 ## 4. Run In Browser Mode
