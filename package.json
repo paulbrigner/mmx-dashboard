@@ -6,7 +6,7 @@
   "license": "(Apache-2.0 OR MIT)",
   "type": "commonjs",
   "scripts": {
-    "check": "node --check modules/MMM-XMonitor/MMM-XMonitor.js && node --check modules/MMM-XMonitor/node_helper.js && node --check scripts/electron-display-info.cjs"
+    "check": "node --check config/config.xmonitor.js && node --check modules/MMM-XMonitor/MMM-XMonitor.js && node --check modules/MMM-XMonitor/node_helper.js && node --check scripts/electron-display-info.cjs && bash -n scripts/install-into-magicmirror.sh && bash -n scripts/start-xmonitor-dashboard.sh"
   },
   "engines": {
     "node": ">=22"

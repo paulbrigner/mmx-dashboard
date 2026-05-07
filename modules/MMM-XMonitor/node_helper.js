@@ -6,6 +6,15 @@ const DEFAULT_TIMEOUT_MS = 12 * 1000;
 module.exports = NodeHelper.create({
 	start() {
 		this.controlFilters = {};
+		this.dashboardState = {
+			modules: [],
+			appearance: {
+				brightness: 100,
+				zoom: 100,
+				backgroundColor: "",
+				fontColor: ""
+			}
+		};
 		this.lastConfig = {};
 		this.routesRegistered = false;
 		this.registerRoutes();
@@ -53,11 +62,38 @@ module.exports = NodeHelper.create({
 			response.writeHead(303, { Location: `/${this.name}/xmonitor-control` });
 			response.end();
 		});
+
+		this.expressApp.post(`/${this.name}/xmonitor-control/module`, (request, response) => {
+			this.readRequestBody(request, (error, body) => {
+				if (!error) this.handleModuleControl(new URLSearchParams(body || ""));
+				this.redirectToControls(response);
+			});
+		});
+
+		this.expressApp.post(`/${this.name}/xmonitor-control/appearance`, (request, response) => {
+			this.readRequestBody(request, (error, body) => {
+				if (!error) this.handleAppearanceControl(new URLSearchParams(body || ""));
+				this.redirectToControls(response);
+			});
+		});
+
+		this.expressApp.post(`/${this.name}/xmonitor-control/alert`, (request, response) => {
+			this.readRequestBody(request, (error, body) => {
+				if (!error) this.handleAlertControl(new URLSearchParams(body || ""));
+				this.redirectToControls(response);
+			});
+		});
 	},
 
 	socketNotificationReceived(notification, payload) {
-		if (notification !== "XMONITOR_DASHBOARD_FETCH") return;
-		this.fetchXMonitor(payload.identifier, payload.config);
+		if (notification === "XMONITOR_DASHBOARD_STATE") {
+			this.dashboardState = this.normalizeDashboardState(payload || {});
+			return;
+		}
+
+		if (notification === "XMONITOR_DASHBOARD_FETCH") {
+			this.fetchXMonitor(payload.identifier, payload.config);
+		}
 	},
 
 	async fetchXMonitor(identifier, config) {
@@ -155,9 +191,9 @@ module.exports = NodeHelper.create({
 
 	buildQueryParams(filters, config) {
 		const params = new URLSearchParams();
-		const defaultLimit = this.isFeedOnly(filters)
+		const defaultLimit = this.isExpandedFeed(filters)
 			? Number(config?.feedOnlyMaxFeedItems || config?.feedLimit || 18)
-			: Number(config?.feedLimit || 12);
+			: Number(config?.feedLimit || 14);
 		const limit = Number(filters.limit || defaultLimit || 12);
 		params.set("limit", String(Math.min(Math.max(limit, 1), 50)));
 
@@ -238,6 +274,92 @@ module.exports = NodeHelper.create({
 		return headers;
 	},
 
+	redirectToControls(response) {
+		response.writeHead(303, { Location: `/${this.name}/xmonitor-control` });
+		response.end();
+	},
+
+	handleModuleControl(params) {
+		const action = String(params.get("action") || "").trim().toLowerCase();
+		const moduleName = String(params.get("module") || "").trim();
+		if (action === "focus-xmonitor") {
+			this.sendSocketNotification("XMONITOR_DASHBOARD_VIEW_ACTION", { action });
+			return;
+		}
+		if (!["show", "hide", "toggle"].includes(action)) return;
+		if (!moduleName) return;
+		this.sendSocketNotification("XMONITOR_DASHBOARD_VIEW_ACTION", {
+			action,
+			module: moduleName
+		});
+	},
+
+	handleAppearanceControl(params) {
+		const action = String(params.get("action") || "").trim().toLowerCase();
+		if (action === "reset") {
+			this.sendSocketNotification("XMONITOR_DASHBOARD_APPEARANCE_UPDATED", { action });
+			return;
+		}
+		this.sendSocketNotification("XMONITOR_DASHBOARD_APPEARANCE_UPDATED", {
+			action: "set",
+			brightness: this.clampNumber(params.get("brightness"), 0, 100, 100),
+			zoom: this.clampNumber(params.get("zoom"), 50, 150, 100),
+			backgroundColor: this.cleanCssColor(params.get("backgroundColor")),
+			fontColor: this.cleanCssColor(params.get("fontColor"))
+		});
+	},
+
+	handleAlertControl(params) {
+		const action = String(params.get("action") || "").trim().toLowerCase();
+		if (action === "hide") {
+			this.sendSocketNotification("XMONITOR_DASHBOARD_ALERT_ACTION", { action });
+			return;
+		}
+		if (action !== "show") return;
+		const message = String(params.get("message") || "").trim();
+		if (!message) return;
+		this.sendSocketNotification("XMONITOR_DASHBOARD_ALERT_ACTION", {
+			action,
+			message,
+			timer: this.clampNumber(params.get("timer"), 1000, 30000, 5000)
+		});
+	},
+
+	normalizeDashboardState(payload) {
+		const modules = Array.isArray(payload.modules)
+			? payload.modules.map((module) => ({
+				name: String(module.name || ""),
+				identifier: String(module.identifier || ""),
+				position: String(module.position || ""),
+				header: String(module.header || ""),
+				classes: String(module.classes || ""),
+				hidden: module.hidden === true,
+				lockStrings: Array.isArray(module.lockStrings) ? module.lockStrings.map(String) : []
+			})).filter((module) => module.name && module.identifier)
+			: [];
+		const appearance = payload.appearance || {};
+		return {
+			modules,
+			appearance: {
+				brightness: this.clampNumber(appearance.brightness, 0, 100, 100),
+				zoom: this.clampNumber(appearance.zoom, 50, 150, 100),
+				backgroundColor: this.cleanCssColor(appearance.backgroundColor),
+				fontColor: this.cleanCssColor(appearance.fontColor)
+			}
+		};
+	},
+
+	clampNumber(value, min, max, fallback) {
+		const parsed = Number(value);
+		if (!Number.isFinite(parsed)) return fallback;
+		return Math.min(Math.max(parsed, min), max);
+	},
+
+	cleanCssColor(value) {
+		const color = String(value || "").trim();
+		return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "";
+	},
+
 	readRequestBody(request, callback) {
 		let body = "";
 		request.setEncoding("utf8");
@@ -286,6 +408,11 @@ module.exports = NodeHelper.create({
 		return !displaySections.summary && !displaySections.metricsActivity && !displaySections.themeDebate;
 	},
 
+	isExpandedFeed(filters) {
+		const displaySections = this.resolveDisplaySections(filters);
+		return !displaySections.metricsActivity && !displaySections.themeDebate;
+	},
+
 	resolveDisplaySections(filters) {
 		const defaults = {
 			summary: true,
@@ -317,6 +444,7 @@ module.exports = NodeHelper.create({
 		const checked = (key) => displaySections[key] ? " checked" : "";
 		const significantValue = String(filters.significant || "true");
 		const checkedSignificant = (value) => significantValue === value ? " selected" : "";
+		const magicMirrorControls = this.renderMagicMirrorControls();
 		return `<!doctype html>
 <html lang="en">
 <head>
@@ -335,6 +463,7 @@ legend{color:#edf5ff;font-weight:750;padding:0 8px}
 input,select,textarea{background:#111823;border:1px solid #334155;border-radius:6px;color:#edf5ff;font:inherit;padding:10px 12px}
 select[multiple]{min-height:134px}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.range-grid{align-items:end;display:grid;gap:18px;grid-template-columns:repeat(4,minmax(0,1fr))}
 .toggle-grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
 .switch-row{align-items:center;background:#111823;border:1px solid #334155;border-radius:6px;display:flex;font-weight:700;gap:14px;justify-content:space-between;min-height:58px;padding:12px}
 .switch-row input{height:1px;opacity:0;position:absolute;width:1px}
@@ -342,12 +471,23 @@ select[multiple]{min-height:134px}
 .switch-control::after{background:#edf5ff;border-radius:50%;content:"";height:22px;transition:transform .18s ease;width:22px}
 .switch-row input:checked + .switch-control{background:#53b7f8}
 .switch-row input:checked + .switch-control::after{transform:translateX(24px)}
-.actions,.action-strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.actions,.action-strip,.compact-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
 .action-strip{margin:0 0 18px}
-.action-strip form{display:block}
+.action-strip form,.compact-actions form,.inline-form{display:block}
+.control-panel{background:#0d131c;border:1px solid #273244;border-radius:6px;margin:0 0 18px;padding:18px}
+.control-panel h2{font-size:24px;margin:0 0 8px}
+.control-panel p,.muted{color:#aebccc;font-size:15px;margin:0 0 14px}
+.module-list{display:grid;gap:10px;margin-top:12px}
+.module-row{align-items:center;background:#111823;border:1px solid #334155;border-radius:6px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr) auto;padding:12px}
+.module-name{font-weight:750}
+.module-meta{color:#aebccc;font-size:14px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-pill{border:1px solid #334155;border-radius:999px;color:#aebccc;display:inline-block;font-size:13px;font-weight:750;margin-left:8px;padding:3px 8px;text-transform:uppercase}
+.status-pill.visible{border-color:#2dd4bf;color:#99f6e4}
+.status-pill.hidden{border-color:#64748b;color:#cbd5e1}
 button,.button-link{background:#53b7f8;border:0;border-radius:6px;color:#06111c;cursor:pointer;display:inline-block;font:inherit;font-weight:750;padding:11px 16px;text-decoration:none}
 button.secondary,.button-link.secondary{background:#1f2937;color:#edf5ff}
-@media(max-width:720px){.grid,.toggle-grid{grid-template-columns:1fr}body{padding:22px}}
+button.small{font-size:15px;padding:8px 11px}
+@media(max-width:720px){.grid,.range-grid,.toggle-grid,.module-row{grid-template-columns:1fr}body{padding:22px}}
 </style>
 </head>
 <body>
@@ -359,6 +499,7 @@ button.secondary,.button-link.secondary{background:#1f2937;color:#edf5ff}
 <form method="post" action="/${this.name}/xmonitor-control/refresh"><button type="submit">Refresh data</button></form>
 <form method="post" action="/${this.name}/xmonitor-control/reload"><button class="secondary" type="submit">Reload display</button></form>
 </div>
+${magicMirrorControls}
 <form method="post" action="/${this.name}/xmonitor-control">
 <fieldset>
 <legend>Dashboard sections</legend>
@@ -410,7 +551,7 @@ ${this.debateOptions().map((item) => `<option value="${this.escapeHtml(item)}"${
 <label>Max followers <input name="max_followers" inputmode="numeric" value="${this.escapeHtml(filters.max_followers || "")}"></label>
 </div>
 <label>Keyword query <textarea name="q" rows="4">${this.escapeHtml(filters.q || "")}</textarea></label>
-<label>Feed limit <input name="limit" inputmode="numeric" value="${this.escapeHtml(filters.limit || "")}" placeholder="${this.escapeHtml(this.lastConfig?.feedLimit || 12)}"></label>
+<label>Feed limit <input name="limit" inputmode="numeric" value="${this.escapeHtml(filters.limit || "")}" placeholder="${this.escapeHtml(this.lastConfig?.feedLimit || 14)}"></label>
 <div class="actions">
 <button type="submit">Apply filters</button>
 </div>
@@ -419,6 +560,112 @@ ${this.debateOptions().map((item) => `<option value="${this.escapeHtml(item)}"${
 </main>
 </body>
 </html>`;
+	},
+
+	renderMagicMirrorControls() {
+		return `
+<section class="control-panel" aria-labelledby="magicmirror-controls-heading">
+<h2 id="magicmirror-controls-heading">MagicMirror Display Controls</h2>
+<p>These controls affect only the running dashboard view. Host power, reboot, monitor, devtools, install, and update controls are intentionally excluded.</p>
+${this.renderModuleControls()}
+${this.renderAppearanceControls()}
+${this.renderAlertControls()}
+</section>`;
+	},
+
+	renderModuleControls() {
+		const modules = (this.dashboardState?.modules || []).filter((module) => module.position || module.name === "MMM-XMonitor");
+		const moduleRows = modules.length > 0
+			? modules.map((module) => this.renderModuleRow(module)).join("")
+			: `<p class="muted">Open or refresh the dashboard once to populate module controls.</p>`;
+		return `
+<fieldset>
+<legend>Module visibility</legend>
+<div class="compact-actions" aria-label="All module actions">
+${this.renderModuleActionForm("all", "show", "Show all", "small")}
+${this.renderModuleActionForm("all", "hide", "Hide all", "small secondary")}
+${this.renderModuleActionForm("", "focus-xmonitor", "Show only MMX", "small secondary")}
+</div>
+<div class="module-list">
+${moduleRows}
+</div>
+</fieldset>`;
+	},
+
+	renderModuleRow(module) {
+		const label = this.moduleLabel(module);
+		const statusClass = module.hidden ? "hidden" : "visible";
+		const status = module.hidden ? "Hidden" : "Visible";
+		const meta = [
+			module.position ? `position: ${module.position}` : "",
+			module.identifier,
+			module.lockStrings.length > 0 ? `locked by ${module.lockStrings.join(", ")}` : ""
+		].filter(Boolean).join(" | ");
+		return `
+<div class="module-row">
+<div>
+<div class="module-name">${this.escapeHtml(label)}<span class="status-pill ${statusClass}">${status}</span></div>
+<div class="module-meta">${this.escapeHtml(meta)}</div>
+</div>
+<div class="compact-actions">
+${this.renderModuleActionForm(module.identifier, "toggle", "Toggle", "small")}
+${this.renderModuleActionForm(module.identifier, "show", "Show", "small secondary")}
+${this.renderModuleActionForm(module.identifier, "hide", "Hide", "small secondary")}
+</div>
+</div>`;
+	},
+
+	renderModuleActionForm(moduleIdentifier, action, label, buttonClass) {
+		return `<form class="inline-form" method="post" action="/${this.name}/xmonitor-control/module">
+<input type="hidden" name="module" value="${this.escapeHtml(moduleIdentifier)}">
+<button class="${this.escapeHtml(buttonClass)}" type="submit" name="action" value="${this.escapeHtml(action)}">${this.escapeHtml(label)}</button>
+</form>`;
+	},
+
+	moduleLabel(module) {
+		if (module.header) return `${module.name} (${module.header})`;
+		return module.name;
+	},
+
+	renderAppearanceControls() {
+		const appearance = this.dashboardState?.appearance || {};
+		const brightness = this.clampNumber(appearance.brightness, 0, 100, 100);
+		const zoom = this.clampNumber(appearance.zoom, 50, 150, 100);
+		const backgroundColor = this.cleanCssColor(appearance.backgroundColor);
+		const fontColor = this.cleanCssColor(appearance.fontColor);
+		return `
+<fieldset>
+<legend>Display appearance</legend>
+<form method="post" action="/${this.name}/xmonitor-control/appearance">
+<div class="range-grid">
+<label>Brightness <input name="brightness" type="range" min="0" max="100" value="${brightness}"></label>
+<label>Zoom <input name="zoom" type="range" min="50" max="150" value="${zoom}"></label>
+<label>Background <input name="backgroundColor" type="color" value="${this.escapeHtml(backgroundColor || "#070a0f")}"></label>
+<label>Font <input name="fontColor" type="color" value="${this.escapeHtml(fontColor || "#dce7f2")}"></label>
+</div>
+<div class="compact-actions">
+<button class="small" type="submit" name="action" value="set">Apply appearance</button>
+<button class="small secondary" type="submit" name="action" value="reset">Reset appearance</button>
+</div>
+</form>
+</fieldset>`;
+	},
+
+	renderAlertControls() {
+		return `
+<fieldset>
+<legend>Dashboard alert</legend>
+<form method="post" action="/${this.name}/xmonitor-control/alert">
+<div class="grid">
+<label>Message <input name="message" maxlength="180" placeholder="Brief message for the display"></label>
+<label>Timer <input name="timer" inputmode="numeric" value="5000"></label>
+</div>
+<div class="compact-actions">
+<button class="small" type="submit" name="action" value="show">Show alert</button>
+<button class="small secondary" type="submit" name="action" value="hide">Hide alert</button>
+</div>
+</form>
+</fieldset>`;
 	},
 
 	themeOptions() {

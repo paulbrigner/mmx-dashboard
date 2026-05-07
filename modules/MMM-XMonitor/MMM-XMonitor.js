@@ -5,7 +5,7 @@ Module.register("MMM-XMonitor", {
 		apiKeyEnvVar: "",
 		apiKeyHeader: "x-api-key",
 		enableLocalControls: false,
-		feedLimit: 12,
+		feedLimit: 14,
 		feedOnlyMaxFeedItems: 18,
 		filters: {},
 		displaySections: {
@@ -14,7 +14,7 @@ Module.register("MMM-XMonitor", {
 			themeDebate: true
 		},
 		maxActivityBuckets: 28,
-		maxFeedItems: 7,
+		maxFeedItems: 14,
 		maxSummaryCharacters: 520,
 		message: "X Monitor dashboard placeholder",
 		mode: "message",
@@ -37,8 +37,16 @@ Module.register("MMM-XMonitor", {
 		this.payload = null;
 		this.lastUpdated = null;
 		this.activeFilters = this.config.filters || {};
+		this.dashboardAppearance = {
+			brightness: 100,
+			zoom: 100,
+			backgroundColor: "",
+			fontColor: ""
+		};
+		this.dashboardStateTimer = null;
 		this.fetchXMonitor();
 		this.scheduleUpdate();
+		this.queueDashboardState();
 	},
 
 	scheduleUpdate() {
@@ -55,6 +63,21 @@ Module.register("MMM-XMonitor", {
 
 	socketNotificationReceived(notification, payload) {
 		if (this.config.mode !== "xmonitor") return;
+
+		if (notification === "XMONITOR_DASHBOARD_VIEW_ACTION") {
+			this.handleDashboardViewAction(payload || {});
+			return;
+		}
+
+		if (notification === "XMONITOR_DASHBOARD_APPEARANCE_UPDATED") {
+			this.applyDashboardAppearance(payload || {});
+			return;
+		}
+
+		if (notification === "XMONITOR_DASHBOARD_ALERT_ACTION") {
+			this.handleDashboardAlert(payload || {});
+			return;
+		}
 
 		if (notification === "XMONITOR_DASHBOARD_FILTERS_UPDATED") {
 			this.status = "loading";
@@ -87,6 +110,163 @@ Module.register("MMM-XMonitor", {
 		this.lastUpdated = payload.fetchedAt || null;
 		this.activeFilters = payload.filters || this.activeFilters;
 		this.updateDom(this.config.animationSpeed);
+		this.queueDashboardState();
+	},
+
+	notificationReceived(notification) {
+		if (this.config.mode !== "xmonitor") return;
+		if (["ALL_MODULES_STARTED", "DOM_OBJECTS_CREATED", "MODULE_DOM_UPDATED"].includes(notification)) {
+			this.queueDashboardState();
+		}
+	},
+
+	queueDashboardState() {
+		clearTimeout(this.dashboardStateTimer);
+		this.dashboardStateTimer = setTimeout(() => this.sendDashboardState(), 150);
+	},
+
+	sendDashboardState() {
+		if (typeof MM === "undefined" || typeof MM.getModules !== "function") return;
+
+		const modules = [];
+		MM.getModules().enumerate((module) => {
+			modules.push({
+				name: module.name,
+				identifier: module.identifier,
+				position: module.data?.position || "",
+				header: module.data?.header || module.config?.header || "",
+				classes: module.data?.classes || "",
+				hidden: Boolean(module.hidden),
+				lockStrings: module.lockStrings || []
+			});
+		});
+
+		this.sendSocketNotification("XMONITOR_DASHBOARD_STATE", {
+			identifier: this.identifier,
+			modules,
+			appearance: this.dashboardAppearance
+		});
+	},
+
+	handleDashboardViewAction(payload) {
+		const action = String(payload.action || "").trim().toLowerCase();
+		if (action === "focus-xmonitor") {
+			this.applyModuleVisibility((module) => module.name === this.name ? "show" : "hide");
+			this.queueDashboardState();
+			return;
+		}
+
+		if (!["show", "hide", "toggle"].includes(action)) return;
+		const modules = this.getDashboardModules(payload.module || "");
+		const options = { lockString: this.identifier };
+		for (const module of modules) {
+			const nextAction = action === "toggle"
+				? (module.hidden ? "show" : "hide")
+				: action;
+			if (nextAction === "show") {
+				module.show(1000, () => {}, { ...options, force: true });
+			} else {
+				module.hide(1000, () => {}, options);
+			}
+		}
+		this.queueDashboardState();
+	},
+
+	applyModuleVisibility(visibilityForModule) {
+		const options = { lockString: this.identifier };
+		MM.getModules().enumerate((module) => {
+			if (visibilityForModule(module) === "show") {
+				module.show(1000, () => {}, { ...options, force: true });
+			} else {
+				module.hide(1000, () => {}, options);
+			}
+		});
+	},
+
+	getDashboardModules(filter) {
+		if (typeof MM === "undefined" || typeof MM.getModules !== "function") return [];
+		const value = String(filter || "").trim();
+		if (value === "all") return MM.getModules();
+		return MM.getModules().filter((module) => module.identifier === value || module.name === value);
+	},
+
+	applyDashboardAppearance(payload) {
+		const action = String(payload.action || "").trim().toLowerCase();
+		if (action === "reset") {
+			this.dashboardAppearance = {
+				brightness: 100,
+				zoom: 100,
+				backgroundColor: "",
+				fontColor: ""
+			};
+		} else {
+			this.dashboardAppearance = {
+				brightness: this.clampNumber(payload.brightness, 0, 100, this.dashboardAppearance.brightness),
+				zoom: this.clampNumber(payload.zoom, 50, 150, this.dashboardAppearance.zoom),
+				backgroundColor: this.cleanCssColor(payload.backgroundColor),
+				fontColor: this.cleanCssColor(payload.fontColor)
+			};
+		}
+
+		this.applyBrightness(this.dashboardAppearance.brightness);
+		document.body.style.zoom = `${this.dashboardAppearance.zoom}%`;
+		this.setStyleOverride("mmx-dashboard-background-override", this.dashboardAppearance.backgroundColor
+			? `html, body { background-color: ${this.dashboardAppearance.backgroundColor} !important; }`
+			: "");
+		this.setStyleOverride("mmx-dashboard-font-override", this.dashboardAppearance.fontColor
+			? `body * { color: ${this.dashboardAppearance.fontColor} !important; }`
+			: "");
+		this.queueDashboardState();
+	},
+
+	applyBrightness(brightness) {
+		let overlay = document.getElementById("mmx-dashboard-brightness-overlay");
+		if (!overlay) {
+			overlay = document.createElement("div");
+			overlay.id = "mmx-dashboard-brightness-overlay";
+			overlay.style.inset = "0";
+			overlay.style.pointerEvents = "none";
+			overlay.style.position = "fixed";
+			overlay.style.zIndex = "9999";
+			document.documentElement.appendChild(overlay);
+		}
+		overlay.style.backgroundColor = `rgba(0, 0, 0, ${(100 - brightness) / 100})`;
+	},
+
+	setStyleOverride(id, cssText) {
+		let style = document.getElementById(id);
+		if (!style) {
+			style = document.createElement("style");
+			style.id = id;
+			document.head.appendChild(style);
+		}
+		style.textContent = cssText;
+	},
+
+	clampNumber(value, min, max, fallback) {
+		const parsed = Number(value);
+		if (!Number.isFinite(parsed)) return fallback;
+		return Math.min(Math.max(parsed, min), max);
+	},
+
+	cleanCssColor(value) {
+		const color = String(value || "").trim();
+		return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "";
+	},
+
+	handleDashboardAlert(payload) {
+		const action = String(payload.action || "").trim().toLowerCase();
+		if (action === "hide") {
+			this.sendNotification("HIDE_ALERT");
+			return;
+		}
+		const message = String(payload.message || "").trim();
+		if (!message) return;
+		this.sendNotification("SHOW_ALERT", {
+			title: "MMX",
+			message,
+			timer: this.clampNumber(payload.timer, 1000, 30000, 5000)
+		});
 	},
 
 	getDom() {
@@ -120,6 +300,7 @@ Module.register("MMM-XMonitor", {
 		const effectiveFilters = this.activeFilters || payload.filters || {};
 		const displaySections = this.resolveDisplaySections(effectiveFilters);
 		const feedOnly = this.isFeedOnly(displaySections);
+		const expandedFeed = this.isExpandedFeed(displaySections);
 		if (feedOnly) wrapper.classList.add("xmonitor-feed-only");
 		wrapper.appendChild(this.renderHeader(payload, effectiveFilters));
 
@@ -134,7 +315,7 @@ Module.register("MMM-XMonitor", {
 		} else {
 			main.classList.add("xmonitor-layout-summary-hidden");
 		}
-		left.appendChild(this.renderFeed(payload.feed?.items || [], { feedOnly }));
+		left.appendChild(this.renderFeed(payload.feed?.items || [], { expandedFeed, feedOnly }));
 
 		const right = document.createElement("section");
 		right.className = "xmonitor-column xmonitor-column-secondary";
@@ -167,6 +348,10 @@ Module.register("MMM-XMonitor", {
 
 	isFeedOnly(displaySections) {
 		return !displaySections.summary && !displaySections.metricsActivity && !displaySections.themeDebate;
+	},
+
+	isExpandedFeed(displaySections) {
+		return !displaySections.metricsActivity && !displaySections.themeDebate;
 	},
 
 	resolveDisplaySections(filters) {
@@ -318,7 +503,7 @@ Module.register("MMM-XMonitor", {
 
 		const list = document.createElement("div");
 		list.className = "xmonitor-feed-list";
-		const maxItems = options.feedOnly
+		const maxItems = options.expandedFeed
 			? Number(this.config.feedOnlyMaxFeedItems) || this.defaults.feedOnlyMaxFeedItems
 			: Number(this.config.maxFeedItems) || this.defaults.maxFeedItems;
 		for (const item of items.slice(0, maxItems)) {

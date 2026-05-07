@@ -23,11 +23,15 @@ mmx-dashboard/scripts/install-into-magicmirror.sh MagicMirror
 The installer copies:
 
 - `modules/MMM-XMonitor/`
+- `modules/MMM-Jast/` from the pinned upstream ticker release
 - `config/config.xmonitor.js`
 - `config/config.xmonitor.env.example`
+- `config/custom.css`
 - `config/custom-debug.css`
 - `scripts/start-xmonitor-dashboard.sh`
 - `scripts/electron-display-info.cjs`
+
+It requires `git`, `npm`, and internet access to install the ticker module.
 
 It preserves existing files by default. Pass `--force` only when you intend to
 replace an existing MMX install.

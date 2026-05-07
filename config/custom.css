@@ -1,1 +1,36 @@
 /* Optional MagicMirror-wide dashboard styling for MMX installs. */
+
+:root {
+  --mmx-ticker-height: 72px;
+}
+
+.region.top.bar {
+  inset: 8px 0 auto 0;
+  position: fixed;
+  z-index: 10;
+}
+
+.region.top.bar > .container {
+  margin: 0 18px;
+  width: auto;
+}
+
+/* MMM-Jast: larger top ticker for at-a-glance market context. */
+.MMM-Jast {
+  margin-bottom: 0;
+}
+
+.MMM-Jast .jast-wrapper {
+  --size: 1.82rem;
+}
+
+/* Leave room for the ticker above the full-screen X Monitor module. */
+.MMM-XMonitor.mmx-dashboard-module {
+  inset: var(--mmx-ticker-height) 0 0 0 !important;
+  position: fixed !important;
+}
+
+.MMM-XMonitor.mmx-dashboard-module .mmx-dashboard {
+  height: calc(100vh - var(--mmx-ticker-height));
+  padding-top: clamp(18px, 3vh, 36px);
+}

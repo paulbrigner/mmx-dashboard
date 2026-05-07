@@ -32,14 +32,31 @@ available from other devices on the LAN.
 ## Feed Display
 
 ```sh
-XMONITOR_MM_FEED_LIMIT=12
-XMONITOR_MM_MAX_FEED_ITEMS=7
+XMONITOR_MM_FEED_LIMIT=14
+XMONITOR_MM_MAX_FEED_ITEMS=14
 XMONITOR_MM_FEED_ONLY_MAX_FEED_ITEMS=18
 ```
 
-`XMONITOR_MM_FEED_LIMIT` controls the API request size. `XMONITOR_MM_MAX_FEED_ITEMS`
-controls the normal display cap. When all optional dashboard sections are
-toggled off, feed-only mode uses `XMONITOR_MM_FEED_ONLY_MAX_FEED_ITEMS`.
+`XMONITOR_MM_FEED_LIMIT` controls the normal API request size.
+`XMONITOR_MM_MAX_FEED_ITEMS` controls the normal display cap. When the right-side
+dashboard sections are toggled off, the single-column Recent Signal view uses
+`XMONITOR_MM_FEED_ONLY_MAX_FEED_ITEMS`.
+
+## Ticker
+
+The default dashboard includes `MMM-Jast` in the top bar with these symbols:
+
+```js
+[
+  { name: "ZEC", symbol: "ZEC-USD" },
+  { name: "ZCSH", symbol: "ZCSH" },
+  { name: "CYPH", symbol: "CYPH" },
+  { name: "BTC", symbol: "BTC-USD" }
+]
+```
+
+Ticker defaults live in `config/config.xmonitor.js`. The installer fetches the
+pinned upstream `MMM-Jast` release and installs its runtime dependencies.
 
 ## Filters
 
@@ -76,5 +93,9 @@ configuration.
 ## Local Control Actions
 
 The controls page can open the dashboard, request an immediate data refresh,
-and reload the dashboard display. It intentionally does not expose host-level
-shutdown, update, or restart controls.
+reload the dashboard display, show/hide/toggle MagicMirror modules, adjust
+display appearance, and show or hide a dashboard alert.
+
+These are dashboard-scoped controls. MMX intentionally does not expose
+host-level shutdown, reboot, monitor power, minimize, devtools, install, update,
+or persistent config-edit controls.

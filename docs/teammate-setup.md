@@ -16,6 +16,9 @@ cd MagicMirror
 cp config/config.xmonitor.env.example config/config.xmonitor.env
 ```
 
+The installer installs MMX plus the default market ticker module. It expects
+`git`, `npm`, and internet access.
+
 Edit `config/config.xmonitor.env` with the private API values supplied to you:
 
 ```sh
@@ -49,7 +52,9 @@ scripts/start-xmonitor-dashboard.sh --display 1
 
 - Control-page changes are temporary and reset when MagicMirror restarts.
 - The controls page can open the dashboard, refresh data, reload the display,
-  adjust filters, and toggle dashboard sections.
+  adjust filters, toggle dashboard sections, manage module visibility, adjust
+  display appearance, and show a brief alert.
+- The default ticker shows ZEC, ZCSH, CYPH, and BTC using `MMM-Jast`.
 - Persistent defaults go in `config/config.xmonitor.env`.
 - Keep `XMONITOR_MM_ADDRESS=127.0.0.1` unless LAN access is deliberate.
 - Do not share `config/config.xmonitor.env` publicly.

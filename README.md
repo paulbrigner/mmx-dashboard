@@ -7,6 +7,7 @@ It renders a dedicated display with:
 - recent signal feed
 - window metrics and activity trend
 - theme mix and debate intensity
+- a top market ticker for ZEC, ZCSH, CYPH, and BTC
 - a local controls page for filters and section toggles
 
 This repository is intentionally separate from any private personal MagicMirror
@@ -25,6 +26,9 @@ git clone https://github.com/paulbrigner/mmx-dashboard.git ../mmx-dashboard
 ../mmx-dashboard/scripts/install-into-magicmirror.sh "$PWD"
 cp config/config.xmonitor.env.example config/config.xmonitor.env
 ```
+
+The installer also installs the `MMM-Jast` ticker module at the version pinned
+by this repository.
 
 Edit `config/config.xmonitor.env` and set the private API values supplied to
 you:
@@ -77,11 +81,15 @@ It can adjust filters and toggle these dashboard sections at runtime:
 - Window metrics + activity trend
 - Theme mix + debate intensity
 
-It also includes safe dashboard actions:
+It also includes dashboard-scoped MagicMirror controls:
 
 - Open dashboard
 - Refresh data
 - Reload display
+- Show, hide, or toggle visible modules
+- Show all modules, hide all modules, or show only MMX
+- Adjust display brightness, zoom, background color, and font color
+- Show or hide a brief dashboard alert
 
 Runtime changes reset when MagicMirror restarts. Persistent defaults belong in
 `config/config.xmonitor.env`.
