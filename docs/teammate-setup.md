@@ -10,7 +10,7 @@ git clone https://github.com/MagicMirrorOrg/MagicMirror.git MagicMirror
 cd MagicMirror
 npm install
 cd ..
-git clone <this-repo-url> mmx-dashboard
+git clone https://github.com/paulbrigner/mmx-dashboard.git mmx-dashboard
 mmx-dashboard/scripts/install-into-magicmirror.sh MagicMirror
 cd MagicMirror
 cp config/config.xmonitor.env.example config/config.xmonitor.env

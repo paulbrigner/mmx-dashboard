@@ -16,7 +16,7 @@ Clone this repository next to your MagicMirror checkout, then run the installer:
 
 ```sh
 cd ..
-git clone <this-repo-url> mmx-dashboard
+git clone https://github.com/paulbrigner/mmx-dashboard.git mmx-dashboard
 mmx-dashboard/scripts/install-into-magicmirror.sh MagicMirror
 ```
 
