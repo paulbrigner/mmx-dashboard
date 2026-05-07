@@ -61,6 +61,35 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+load_env_file() {
+  local env_file="$1"
+  local line key value
+
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    [[ "${line}" =~ ^[[:space:]]*$ || "${line}" =~ ^[[:space:]]*# ]] && continue
+    if [[ "${line}" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+      key="${BASH_REMATCH[1]}"
+      value="${BASH_REMATCH[2]}"
+      value="${value%$'\r'}"
+      value="${value#"${value%%[![:space:]]*}"}"
+      value="${value%"${value##*[![:space:]]}"}"
+      if [[ "${#value}" -ge 2 ]]; then
+        if [[ "${value:0:1}" == "\"" && "${value: -1}" == "\"" ]]; then
+          value="${value:1:${#value}-2}"
+        elif [[ "${value:0:1}" == "'" && "${value: -1}" == "'" ]]; then
+          value="${value:1:${#value}-2}"
+        fi
+      fi
+      export "${key}=${value}"
+    fi
+  done < "${env_file}"
+}
+
+ENV_FILE="config/config.xmonitor.env"
+if [[ -f "${ENV_FILE}" ]]; then
+  load_env_file "${ENV_FILE}"
+fi
+
 export MM_CONFIG_FILE="config/config.xmonitor.js"
 export XMONITOR_MM_PORT="${XMONITOR_MM_PORT:-8091}"
 
