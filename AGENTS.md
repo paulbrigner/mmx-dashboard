@@ -3,7 +3,7 @@
 Durable instructions for future Codex sessions in this repository:
 
 - This is the public, standalone MMX dashboard project.
-- Keep it separate from private family-dashboard or personal MagicMirror repos.
+- Keep it separate from private personal MagicMirror repos.
 - Do not commit real X Monitor API endpoints, API keys, cookies, account IDs,
   private handles, local paths, screenshots with private data, or AWS details.
 - Keep `XMONITOR_MM_API_BASE_URL` configurable and blank in committed examples.

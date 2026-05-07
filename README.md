@@ -9,8 +9,8 @@ read API. It renders a dedicated display with:
 - theme mix and debate intensity
 - a local controls page for filters and section toggles
 
-This repository is intentionally separate from any private family dashboard or
-personal MagicMirror setup. Bring your own X Monitor API endpoint.
+This repository is intentionally separate from any private personal MagicMirror
+setup. Bring your own X Monitor API endpoint.
 
 ## Quick Start
 
