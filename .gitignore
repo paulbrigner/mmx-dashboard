@@ -2,6 +2,9 @@ node_modules/
 .DS_Store
 *.log
 
+# Locally generated shareable PDFs.
+docs/MMX-Dashboard-Team-Setup.pdf
+
 # Local MagicMirror/X Monitor settings.
 config/config.xmonitor.env
 config/config.env
