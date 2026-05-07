@@ -48,6 +48,8 @@ scripts/start-xmonitor-dashboard.sh --display 1
 ## Notes
 
 - Control-page changes are temporary and reset when MagicMirror restarts.
+- The controls page can open the dashboard, refresh data, reload the display,
+  adjust filters, and toggle dashboard sections.
 - Persistent defaults go in `config/config.xmonitor.env`.
 - Keep `XMONITOR_MM_ADDRESS=127.0.0.1` unless LAN access is deliberate.
 - Do not share `config/config.xmonitor.env` publicly.

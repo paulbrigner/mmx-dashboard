@@ -77,6 +77,12 @@ It can adjust filters and toggle these dashboard sections at runtime:
 - Window metrics + activity trend
 - Theme mix + debate intensity
 
+It also includes safe dashboard actions:
+
+- Open dashboard
+- Refresh data
+- Reload display
+
 Runtime changes reset when MagicMirror restarts. Persistent defaults belong in
 `config/config.xmonitor.env`.
 

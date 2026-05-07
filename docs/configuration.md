@@ -72,3 +72,9 @@ SECRET_XMONITOR_MM_API_KEY=
 If set, the node helper sends the value as `x-api-key` when calling the private
 API. Because this is server-side, the key is not included in browser module
 configuration.
+
+## Local Control Actions
+
+The controls page can open the dashboard, request an immediate data refresh,
+and reload the dashboard display. It intentionally does not expose host-level
+shutdown, update, or restart controls.

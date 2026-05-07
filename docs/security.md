@@ -24,6 +24,12 @@ SECRET_XMONITOR_MM_API_KEY=
 The key is read by `node_helper.js` and sent server-side as `x-api-key`. Do not
 put secrets in browser-visible module options.
 
+## Local Controls
+
+The controls page is intended for local dashboard operation. It includes safe
+display actions such as refresh and reload, but it does not provide host-level
+shutdown, update, or restart controls.
+
 ## Public Repositories
 
 Do not commit:

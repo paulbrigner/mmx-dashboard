@@ -64,6 +64,18 @@ Module.register("MMM-XMonitor", {
 			return;
 		}
 
+		if (notification === "XMONITOR_DASHBOARD_REFRESH_REQUESTED") {
+			this.status = "loading";
+			this.updateDom(this.config.animationSpeed);
+			this.fetchXMonitor();
+			return;
+		}
+
+		if (notification === "XMONITOR_DASHBOARD_RELOAD_REQUESTED") {
+			window.location.reload();
+			return;
+		}
+
 		if (notification !== "XMONITOR_DASHBOARD_RESULT" || payload.identifier !== this.identifier) {
 			return;
 		}

@@ -41,6 +41,18 @@ module.exports = NodeHelper.create({
 			response.writeHead(303, { Location: `/${this.name}/xmonitor-control` });
 			response.end();
 		});
+
+		this.expressApp.post(`/${this.name}/xmonitor-control/refresh`, (_request, response) => {
+			this.sendSocketNotification("XMONITOR_DASHBOARD_REFRESH_REQUESTED", {});
+			response.writeHead(303, { Location: `/${this.name}/xmonitor-control` });
+			response.end();
+		});
+
+		this.expressApp.post(`/${this.name}/xmonitor-control/reload`, (_request, response) => {
+			this.sendSocketNotification("XMONITOR_DASHBOARD_RELOAD_REQUESTED", {});
+			response.writeHead(303, { Location: `/${this.name}/xmonitor-control` });
+			response.end();
+		});
 	},
 
 	socketNotificationReceived(notification, payload) {
@@ -330,9 +342,11 @@ select[multiple]{min-height:134px}
 .switch-control::after{background:#edf5ff;border-radius:50%;content:"";height:22px;transition:transform .18s ease;width:22px}
 .switch-row input:checked + .switch-control{background:#53b7f8}
 .switch-row input:checked + .switch-control::after{transform:translateX(24px)}
-.actions{display:flex;gap:12px;margin-top:8px}
-button{background:#53b7f8;border:0;border-radius:6px;color:#06111c;cursor:pointer;font:inherit;font-weight:750;padding:11px 16px}
-button.secondary{background:#1f2937;color:#edf5ff}
+.actions,.action-strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.action-strip{margin:0 0 18px}
+.action-strip form{display:block}
+button,.button-link{background:#53b7f8;border:0;border-radius:6px;color:#06111c;cursor:pointer;display:inline-block;font:inherit;font-weight:750;padding:11px 16px;text-decoration:none}
+button.secondary,.button-link.secondary{background:#1f2937;color:#edf5ff}
 @media(max-width:720px){.grid,.toggle-grid{grid-template-columns:1fr}body{padding:22px}}
 </style>
 </head>
@@ -340,6 +354,11 @@ button.secondary{background:#1f2937;color:#edf5ff}
 <main>
 <h1>X Monitor Dashboard Controls</h1>
 <p>Changes apply to the running MagicMirror dashboard and reset when MagicMirror restarts.</p>
+<div class="action-strip" aria-label="Dashboard actions">
+<a class="button-link secondary" href="/" target="_blank" rel="noreferrer">Open dashboard</a>
+<form method="post" action="/${this.name}/xmonitor-control/refresh"><button type="submit">Refresh data</button></form>
+<form method="post" action="/${this.name}/xmonitor-control/reload"><button class="secondary" type="submit">Reload display</button></form>
+</div>
 <form method="post" action="/${this.name}/xmonitor-control">
 <fieldset>
 <legend>Dashboard sections</legend>
