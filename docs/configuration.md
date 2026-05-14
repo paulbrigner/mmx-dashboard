@@ -78,7 +78,7 @@ XMONITOR_MM_MAX_ACCOUNT_AGE_DAYS=
 ```
 
 Comma-separate multi-value filters such as tiers, themes, debate issues, and
-handles.
+handles. `XMONITOR_MM_TREND_RANGE` accepts `24h`, `7d`, `30d`, or `90d`.
 
 ## Optional API Key
 

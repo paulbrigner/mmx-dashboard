@@ -522,6 +522,7 @@ ${magicMirrorControls}
 <option value="24h"${String(filters.trendRange || this.lastConfig?.trendRange || "24h") === "24h" ? " selected" : ""}>24H</option>
 <option value="7d"${String(filters.trendRange || this.lastConfig?.trendRange || "") === "7d" ? " selected" : ""}>7D</option>
 <option value="30d"${String(filters.trendRange || this.lastConfig?.trendRange || "") === "30d" ? " selected" : ""}>30D</option>
+<option value="90d"${String(filters.trendRange || this.lastConfig?.trendRange || "") === "90d" ? " selected" : ""}>90D</option>
 </select>
 </label>
 <label>Tiers

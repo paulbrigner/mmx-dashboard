@@ -588,7 +588,7 @@ Module.register("MMM-XMonitor", {
 	},
 
 	renderActivity(trends) {
-		const section = this.panel("Activity trend", "xmonitor-activity-panel");
+		const section = this.panel(`Activity trend (${this.formatTrendRangeLabel(this.resolveTrendRange(trends))})`, "xmonitor-activity-panel");
 		const buckets = trends?.activity?.buckets || [];
 		if (buckets.length === 0) {
 			section.appendChild(this.emptyText("No activity buckets are available."));
@@ -615,6 +615,25 @@ Module.register("MMM-XMonitor", {
 
 		section.appendChild(chart);
 		return section;
+	},
+
+	resolveTrendRange(trends) {
+		return String(
+			trends?.scope?.range_key
+			|| this.activeFilters?.trendRange
+			|| this.config.filters?.trendRange
+			|| this.config.trendRange
+			|| "24h"
+		).toLowerCase();
+	},
+
+	formatTrendRangeLabel(rangeKey) {
+		return {
+			"24h": "24H",
+			"7d": "7D",
+			"30d": "30D",
+			"90d": "90D"
+		}[rangeKey] || String(rangeKey || "").toUpperCase();
 	},
 
 	renderThemeTrends(trends) {
