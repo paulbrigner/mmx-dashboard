@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "MagicMirror X Monitor dashboard module and sample configuration.",
   "private": false,
-  "license": "(Apache-2.0 OR MIT)",
+  "license": "AGPL-3.0-only",
   "type": "commonjs",
   "scripts": {
     "check": "node --check config/config.xmonitor.js && node --check modules/MMM-XMonitor/MMM-XMonitor.js && node --check modules/MMM-XMonitor/node_helper.js && node --check scripts/electron-display-info.cjs && bash -n scripts/install-into-magicmirror.sh && bash -n scripts/start-xmonitor-dashboard.sh"
