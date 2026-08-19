@@ -102,11 +102,8 @@ If your private API requires a key, set `SECRET_XMONITOR_MM_API_KEY` in
 
 Do not commit `config/config.xmonitor.env`.
 
-## License Options
+## License
 
-All code in this workspace is licensed under either of:
-
-- Apache License, Version 2.0 (see `LICENSE-APACHE` or <http://www.apache.org/licenses/LICENSE-2.0>)
-- MIT license (see `LICENSE-MIT` or <http://opensource.org/licenses/MIT>)
-
-at your option.
+This project is licensed under the
+[GNU Affero General Public License, version 3 only](LICENSE)
+(`AGPL-3.0-only`).
