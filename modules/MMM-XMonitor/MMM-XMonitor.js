@@ -33,6 +33,7 @@ Module.register("MMM-XMonitor", {
 	start() {
 		if (this.config.mode !== "xmonitor") return;
 
+		this.applyUrlScrollMode();
 		this.status = "loading";
 		this.error = null;
 		this.errors = [];
@@ -49,6 +50,12 @@ Module.register("MMM-XMonitor", {
 		this.fetchXMonitor();
 		this.scheduleUpdate();
 		this.queueDashboardState();
+	},
+
+	applyUrlScrollMode() {
+		if (typeof window === "undefined" || typeof document === "undefined") return;
+		const enabled = new URLSearchParams(window.location.search).get("scroll") === "1";
+		document.documentElement.classList.toggle("mmx-scroll-mode", enabled);
 	},
 
 	scheduleUpdate() {

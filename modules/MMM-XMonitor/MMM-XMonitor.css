@@ -27,6 +27,53 @@
   width: 100vw;
 }
 
+html.mmx-scroll-mode {
+  cursor: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  user-select: text;
+}
+
+html.mmx-scroll-mode body {
+  height: auto;
+  margin: 0;
+  min-height: 100vh;
+  overflow: visible;
+  position: static;
+  width: 100%;
+}
+
+html.mmx-scroll-mode .region.fullscreen {
+  inset: auto;
+  pointer-events: auto;
+  position: static;
+}
+
+html.mmx-scroll-mode .MMM-XMonitor.mmx-dashboard-module {
+  inset: auto !important;
+  margin-top: var(--mmx-ticker-height);
+  position: relative !important;
+  width: 100% !important;
+}
+
+html.mmx-scroll-mode .MMM-XMonitor.mmx-dashboard-module .mmx-dashboard {
+  height: auto;
+  min-height: calc(100vh - var(--mmx-ticker-height));
+  overflow: visible;
+  width: 100%;
+}
+
+html.mmx-scroll-mode .xmonitor-layout {
+  flex: none;
+}
+
+html.mmx-scroll-mode .xmonitor-column,
+html.mmx-scroll-mode .xmonitor-feed-panel,
+html.mmx-scroll-mode .xmonitor-feed-panel .xmonitor-feed-list {
+  max-height: none;
+  overflow: visible;
+}
+
 .mmx-dashboard,
 .mmx-dashboard * {
   box-sizing: border-box;

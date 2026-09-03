@@ -51,6 +51,18 @@ XMONITOR_MM_FEED_ONLY_MAX_FEED_ITEMS=18
 dashboard sections are toggled off, the single-column Recent Signal view uses
 `XMONITOR_MM_FEED_ONLY_MAX_FEED_ITEMS`.
 
+## Browser Scrolling
+
+The default dashboard URL keeps the fixed, non-scrolling kiosk layout. Add
+`?scroll=1` for a browser-local scrolling view:
+
+```text
+http://localhost:8091/?scroll=1
+```
+
+The query parameter affects only that browser tab. It does not change the
+Electron display or other connected browsers.
+
 ## Ticker
 
 The default dashboard includes `MMM-Jast` in the top bar with these symbols:
