@@ -20,6 +20,7 @@ Use the values supplied to you privately.
 ```sh
 XMONITOR_MM_ADDRESS=127.0.0.1
 XMONITOR_MM_PORT=8091
+XMONITOR_MM_IP_WHITELIST=127.0.0.1,::ffff:127.0.0.1,::1
 XMONITOR_MM_TITLE=X Monitor
 XMONITOR_MM_REFRESH_INTERVAL_MS=120000
 XMONITOR_MM_REQUEST_TIMEOUT_MS=12000
@@ -28,6 +29,14 @@ XMONITOR_MM_LOCAL_CONTROLS=true
 
 Keep `XMONITOR_MM_ADDRESS=127.0.0.1` unless you deliberately want the dashboard
 available from other devices on the LAN.
+
+For direct access from a trusted LAN, bind to `0.0.0.0` and add the LAN CIDR
+while retaining loopback access, for example:
+
+```sh
+XMONITOR_MM_ADDRESS=0.0.0.0
+XMONITOR_MM_IP_WHITELIST=127.0.0.1,::ffff:127.0.0.1,::1,192.168.1.0/24
+```
 
 ## Feed Display
 

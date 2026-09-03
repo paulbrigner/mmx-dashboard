@@ -18,6 +18,8 @@ const optionalNumber = (name) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+const configuredIpWhitelist = csv("XMONITOR_MM_IP_WHITELIST");
+
 const xmonitorFilters = {
   significant: envValue("XMONITOR_MM_SIGNIFICANT", "true"),
   trendRange: envValue("XMONITOR_MM_TREND_RANGE", "24h"),
@@ -54,7 +56,9 @@ let config = {
   address: envValue("XMONITOR_MM_ADDRESS", "127.0.0.1"),
   port: Number(envValue("XMONITOR_MM_PORT", "8091")),
   basePath: "/",
-  ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
+  ipWhitelist: configuredIpWhitelist.length > 0
+    ? configuredIpWhitelist
+    : ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
 
   useHttps: false,
   httpsPrivateKey: "",

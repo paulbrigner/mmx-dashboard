@@ -13,6 +13,17 @@ XMONITOR_MM_ADDRESS=127.0.0.1
 Keep that setting unless you intentionally want other LAN devices to access the
 dashboard and controls page.
 
+For direct access from a trusted LAN, bind to all interfaces and allow only the
+LAN range plus loopback addresses:
+
+```sh
+XMONITOR_MM_ADDRESS=0.0.0.0
+XMONITOR_MM_IP_WHITELIST=127.0.0.1,::ffff:127.0.0.1,::1,192.168.1.0/24
+```
+
+An empty whitelist permits every client that can reach the server. Do not expose
+port `8091` directly to the public internet.
+
 ## Read-Client Credentials
 
 Give this server-side installation its own read-only client identity:
