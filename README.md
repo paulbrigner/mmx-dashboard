@@ -97,8 +97,10 @@ Runtime changes reset when MagicMirror restarts. Persistent defaults belong in
 ## Security
 
 Keep `XMONITOR_MM_ADDRESS=127.0.0.1` unless you intentionally want LAN access.
-If your private API requires a key, set `SECRET_XMONITOR_MM_API_KEY` in
-`config/config.xmonitor.env`; the node helper sends it server-side.
+Set `XMONITOR_MM_READ_CLIENT_ID` and `SECRET_XMONITOR_MM_READ_CLIENT_SECRET`
+in `config/config.xmonitor.env` for protected backend reads. The node helper
+sends both values server-side; the secret is never included in browser module
+configuration.
 
 Do not commit `config/config.xmonitor.env`.
 

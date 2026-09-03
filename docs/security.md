@@ -13,16 +13,18 @@ XMONITOR_MM_ADDRESS=127.0.0.1
 Keep that setting unless you intentionally want other LAN devices to access the
 dashboard and controls page.
 
-## API Keys
+## Read-Client Credentials
 
-If your private X Monitor API requires a key, put it in:
+Give this server-side installation its own read-only client identity:
 
 ```sh
-SECRET_XMONITOR_MM_API_KEY=
+XMONITOR_MM_READ_CLIENT_ID=
+SECRET_XMONITOR_MM_READ_CLIENT_SECRET=
 ```
 
-The key is read by `node_helper.js` and sent server-side as `x-api-key`. Do not
-put secrets in browser-visible module options.
+The values are read by `node_helper.js` and sent as `x-xmonitor-client-id` and
+`x-xmonitor-client-secret`. Do not put the secret in browser-visible module
+options or grant this dashboard ingest or administration capabilities.
 
 ## Local Controls
 

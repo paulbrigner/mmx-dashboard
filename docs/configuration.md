@@ -80,15 +80,17 @@ XMONITOR_MM_MAX_ACCOUNT_AGE_DAYS=
 Comma-separate multi-value filters such as tiers, themes, debate issues, and
 handles. `XMONITOR_MM_TREND_RANGE` accepts `24h`, `7d`, `30d`, or `90d`.
 
-## Optional API Key
+## Read-Client Credentials
 
 ```sh
-SECRET_XMONITOR_MM_API_KEY=
+XMONITOR_MM_READ_CLIENT_ID=
+SECRET_XMONITOR_MM_READ_CLIENT_SECRET=
 ```
 
-If set, the node helper sends the value as `x-api-key` when calling the private
-API. Because this is server-side, the key is not included in browser module
-configuration.
+The node helper resolves both values server-side and sends them as
+`x-xmonitor-client-id` and `x-xmonitor-client-secret`. The secret is not
+included in browser module configuration. Use a distinct backend client with
+only the `read` capability for each MMX installation.
 
 ## Local Control Actions
 

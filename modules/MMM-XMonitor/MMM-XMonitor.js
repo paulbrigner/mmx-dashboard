@@ -4,6 +4,8 @@ Module.register("MMM-XMonitor", {
 		apiBaseUrl: "",
 		apiKeyEnvVar: "",
 		apiKeyHeader: "x-api-key",
+		readClientIdEnvVar: "",
+		readClientSecretEnvVar: "",
 		enableLocalControls: false,
 		feedLimit: 14,
 		feedOnlyMaxFeedItems: 18,

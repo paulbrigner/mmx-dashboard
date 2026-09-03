@@ -266,6 +266,17 @@ module.exports = NodeHelper.create({
 
 	buildHeaders(config) {
 		const headers = { accept: "application/json" };
+		const clientIdEnvName = String(config?.readClientIdEnvVar || "").trim();
+		const clientSecretEnvName = String(config?.readClientSecretEnvVar || "").trim();
+		if (clientIdEnvName || clientSecretEnvName) {
+			const clientId = clientIdEnvName ? String(process.env[clientIdEnvName] || "").trim() : "";
+			const clientSecret = clientSecretEnvName ? String(process.env[clientSecretEnvName] || "").trim() : "";
+			if (!clientId || !clientSecret) {
+				throw new Error("X Monitor read-client credentials are not configured");
+			}
+			headers["x-xmonitor-client-id"] = clientId;
+			headers["x-xmonitor-client-secret"] = clientSecret;
+		}
 		const envName = String(config?.apiKeyEnvVar || "").trim();
 		const value = envName ? String(process.env[envName] || "").trim() : "";
 		if (value) {
