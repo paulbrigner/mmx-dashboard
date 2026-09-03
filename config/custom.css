@@ -10,6 +10,15 @@
   z-index: 10;
 }
 
+/* Cover scrolling content across the full reserved ticker strip. */
+html.mmx-scroll-mode .region.top.bar {
+  background-color: inherit;
+  box-sizing: border-box;
+  inset: 0 0 auto 0;
+  min-height: var(--mmx-ticker-height);
+  padding-top: 8px;
+}
+
 .region.top.bar > .container {
   margin: 0 18px;
   width: auto;
