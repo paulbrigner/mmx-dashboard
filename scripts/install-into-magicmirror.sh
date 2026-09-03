@@ -29,8 +29,8 @@ fi
 
 SOURCE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 JAST_REPOSITORY="https://github.com/jalibu/MMM-Jast.git"
-JAST_VERSION="v2.10.5"
-JAST_COMMIT="5f0de4020553593a5ed347a418e40ec2cea67d80"
+JAST_VERSION="v2.11.0"
+JAST_COMMIT="ddc2e6ad31acbba2a49c99a8314418e80a22c242"
 
 if [[ ! -f "${MAGICMIRROR_DIR}/package.json" || ! -d "${MAGICMIRROR_DIR}/modules" ]]; then
   echo "This does not look like a MagicMirror checkout: ${MAGICMIRROR_DIR}"
