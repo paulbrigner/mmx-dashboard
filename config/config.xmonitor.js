@@ -93,7 +93,11 @@ let config = {
     },
     {
       module: "updatenotification",
-      position: "top_bar"
+      position: "top_bar",
+      config: {
+        // v2.11.0 multiplies Yahoo Finance v4 percentage-point values by 100.
+        ignoreModules: ["MMM-Jast"]
+      }
     },
     {
       module: "MMM-XMonitor",
