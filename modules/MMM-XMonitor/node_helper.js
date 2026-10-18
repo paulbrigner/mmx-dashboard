@@ -26,6 +26,8 @@ module.exports = NodeHelper.create({
 
 		this.expressApp.get(`/${this.name}/xmonitor-control`, (_request, response) => {
 			response.set("Content-Type", "text/html; charset=utf-8");
+			// Keep same-origin form POSTs from acquiring an opaque Origin under Helmet's no-referrer default.
+			response.set("Referrer-Policy", "same-origin");
 			response.send(this.renderControlPage());
 		});
 

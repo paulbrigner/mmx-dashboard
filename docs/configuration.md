@@ -38,6 +38,13 @@ XMONITOR_MM_ADDRESS=0.0.0.0
 XMONITOR_MM_IP_WHITELIST=127.0.0.1,::ffff:127.0.0.1,::1,192.168.1.0/24
 ```
 
+If the controls page opens but submitting a form returns “This device is not
+allowed to access your mirror,” check the MagicMirror log for `Origin null is
+not allowed`. The controls page sets `Referrer-Policy: same-origin` so browser
+form submissions pass MagicMirror's same-origin check. Update the installed
+`MMM-XMonitor` module, restart the server, and reload the controls page to pick
+up this header. Keep the IP allowlist enabled.
+
 ## Feed Display
 
 ```sh
