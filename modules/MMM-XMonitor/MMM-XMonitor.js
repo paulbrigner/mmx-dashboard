@@ -616,10 +616,9 @@ Module.register("MMM-XMonitor", {
 	renderActivity(trends) {
 		const section = this.panel(`Activity trend (${this.formatTrendRangeLabel(this.resolveTrendRange(trends))})`, "xmonitor-activity-panel");
 		if (this.archiveState()?.enabled && trends?.scope?.since && trends?.scope?.until) {
-			const meta = document.createElement("div");
-			meta.className = "xmonitor-section-meta";
-			meta.textContent = `${this.formatDateTime(trends.scope.since)} to ${this.formatDateTime(trends.scope.until)}`;
-			section.appendChild(meta);
+			const windowLabel = `${this.formatDateTime(trends.scope.since)} to ${this.formatDateTime(trends.scope.until)}`;
+			section.title = windowLabel;
+			section.setAttribute("aria-label", `Archived activity: ${windowLabel}`);
 		}
 		const buckets = trends?.activity?.buckets || [];
 		if (buckets.length === 0) {
