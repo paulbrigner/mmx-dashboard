@@ -118,6 +118,12 @@ Module.register("MMM-XMonitor", {
 		this.payload = payload.payload || null;
 		this.lastUpdated = payload.fetchedAt || null;
 		this.activeFilters = payload.filters || this.activeFilters;
+		if (this.archiveState()?.enabled && this.status === "ok") {
+			clearInterval(this.updateTimer);
+			this.updateTimer = null;
+		} else if (!this.updateTimer) {
+			this.scheduleUpdate();
+		}
 		this.updateDom(this.config.animationSpeed);
 		this.queueDashboardState();
 	},
@@ -403,7 +409,7 @@ Module.register("MMM-XMonitor", {
 
 		const eyebrow = document.createElement("div");
 		eyebrow.className = "xmonitor-eyebrow";
-		eyebrow.textContent = "X Monitor Dashboard";
+		eyebrow.textContent = this.archiveState(payload)?.enabled ? "X Monitor Archive" : "X Monitor Dashboard";
 		titleGroup.appendChild(eyebrow);
 
 		const title = document.createElement("h1");
@@ -422,9 +428,20 @@ Module.register("MMM-XMonitor", {
 		return header;
 	},
 
+	archiveState(payload = this.payload) {
+		return payload?.archive || payload?.feed?.archive || payload?.trends?.archive || null;
+	},
+
 	buildHeaderMeta(payload) {
 		const parts = [];
-		if (this.lastUpdated) parts.push(`Updated ${this.formatTime(this.lastUpdated)}`);
+		const archive = this.archiveState(payload);
+		if (archive?.enabled) {
+			parts.push(`Collection ended ${this.formatDateTime(archive.collectionStoppedAt || archive.cutoff)}`);
+			parts.push(`Data through ${this.formatDateTime(archive.cutoff)}`);
+			parts.push("Engagement last observed");
+		} else if (this.lastUpdated) {
+			parts.push(`Updated ${this.formatTime(this.lastUpdated)}`);
+		}
 		if (payload?.trends?.scope?.range_key) parts.push(`Range ${String(payload.trends.scope.range_key).toUpperCase()}`);
 		if (this.status === "partial") parts.push("Partial data");
 		return parts.join(" | ");
@@ -482,11 +499,11 @@ Module.register("MMM-XMonitor", {
 	},
 
 	renderSummary(summaries) {
-		const section = this.panel("Latest 2-hour summary", "xmonitor-summary-panel");
+		const section = this.panel(this.archiveState()?.enabled ? "Saved 2-hour summary" : "Latest 2-hour summary", "xmonitor-summary-panel");
 		const summary = summaries.find((item) => item.window_type === this.config.summaryWindowType) || summaries[0];
 
 		if (!summary) {
-			section.appendChild(this.emptyText("No rolling summary is available yet."));
+			section.appendChild(this.emptyText(this.archiveState()?.enabled ? "No saved summary is available." : "No rolling summary is available yet."));
 			return section;
 		}
 
@@ -504,7 +521,7 @@ Module.register("MMM-XMonitor", {
 	},
 
 	renderFeed(items, options = {}) {
-		const section = this.panel("Recent signal", "xmonitor-feed-panel");
+		const section = this.panel(this.archiveState()?.enabled ? "Archived signal" : "Recent signal", "xmonitor-feed-panel");
 		if (items.length === 0) {
 			section.appendChild(this.emptyText("No posts match the current filter."));
 			return section;
@@ -598,6 +615,12 @@ Module.register("MMM-XMonitor", {
 
 	renderActivity(trends) {
 		const section = this.panel(`Activity trend (${this.formatTrendRangeLabel(this.resolveTrendRange(trends))})`, "xmonitor-activity-panel");
+		if (this.archiveState()?.enabled && trends?.scope?.since && trends?.scope?.until) {
+			const meta = document.createElement("div");
+			meta.className = "xmonitor-section-meta";
+			meta.textContent = `${this.formatDateTime(trends.scope.since)} to ${this.formatDateTime(trends.scope.until)}`;
+			section.appendChild(meta);
+		}
 		const buckets = trends?.activity?.buckets || [];
 		if (buckets.length === 0) {
 			section.appendChild(this.emptyText("No activity buckets are available."));
@@ -796,6 +819,7 @@ Module.register("MMM-XMonitor", {
 		const date = new Date(value);
 		if (!Number.isFinite(date.getTime())) return "";
 		return new Intl.DateTimeFormat(this.config.locale || config.locale || "en-US", {
+			year: "numeric",
 			month: "short",
 			day: "numeric",
 			hour: "numeric",
@@ -804,6 +828,7 @@ Module.register("MMM-XMonitor", {
 	},
 
 	formatRelativeTime(value) {
+		if (this.archiveState()?.enabled) return this.formatDateTime(value);
 		const date = new Date(value);
 		if (!Number.isFinite(date.getTime())) return "";
 		const diffMinutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));

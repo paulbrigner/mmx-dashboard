@@ -16,6 +16,7 @@ module.exports = NodeHelper.create({
 			}
 		};
 		this.lastConfig = {};
+		this.archive = null;
 		this.routesRegistered = false;
 		this.registerRoutes();
 	},
@@ -134,6 +135,10 @@ module.exports = NodeHelper.create({
 		this.applySettled("feed", feed, payload, errors);
 		this.applySettled("trends", trends, payload, errors);
 		this.applySettled("summaries", summaries, payload, errors);
+		const archive = [payload.feed?.archive, payload.trends?.archive, payload.summaries?.archive]
+			.find((value) => value && typeof value.enabled === "boolean");
+		if (archive) this.archive = archive;
+		payload.archive = this.archive;
 		if (payload.summaries?.items) payload.summaries = payload.summaries.items;
 
 		if (!payload.feed && !payload.trends && !payload.summaries) {
@@ -507,6 +512,7 @@ button.small{font-size:15px;padding:8px 11px}
 <main>
 <h1>X Monitor Dashboard Controls</h1>
 <p>Changes apply to the running MagicMirror dashboard and reset when MagicMirror restarts.</p>
+${this.archive?.enabled ? `<p>Archive through ${this.escapeHtml(this.archive.cutoff)}. Trend ranges end at the archive cutoff. Refresh reloads stored data; engagement counts are last observed.</p>` : ""}
 <div class="action-strip" aria-label="Dashboard actions">
 <a class="button-link secondary" href="/" target="_blank" rel="noreferrer">Open dashboard</a>
 <form method="post" action="/${this.name}/xmonitor-control/refresh"><button type="submit">Refresh data</button></form>
